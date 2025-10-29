@@ -16,8 +16,20 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET - Returns latest entry
+router.get("/latest", async (req, res) => {
+  try {
+    const latest = await prisma.reading.findFirst({
+      orderBy: { time: "desc" },
+    });
+    res.json(latest);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET (ID)
-router.get("/:id", async (req, res) => {
+router.get("/id/:id", async (req, res) => {
   try {
     const reading = await prisma.reading.findUnique({
       where: { id: Number(req.params.id) },
@@ -38,18 +50,6 @@ router.get("/latest/:count", async (req, res) => {
       take: count,
     });
     res.json(readings);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET - Returns latest entry
-router.get("/latest", async (req, res) => {
-  try {
-    const latest = await prisma.reading.findFirst({
-      orderBy: { time: "desc" },
-    });
-    res.json(latest);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
