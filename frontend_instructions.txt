@@ -1,0 +1,5 @@
+# You will require the .env files to run this. Put it in the frontend directory
+
+cd frontend
+npm install
+npm run dev

@@ -1,0 +1,29 @@
+# First ssh into the droplet (will need to set up SSH keys)
+
+ssh root@DROPLET_IP
+
+cd ece1528project/backend
+
+# If any changes to the repo code (ONLY IF CHANGES ARE MADE):
+git pull
+
+# Rebuild the image (ONLY IF CHANGES ARE MADE)
+# You will require the .env files to run this. Put it in the backend directory
+
+docker-compose build --no-cache
+
+# Run migration (ONLY IF CHANGES ARE MADE)
+
+docker exec -it backend_backend_1 npx prisma migrate dev --name init
+
+# Run the container
+
+docker-compose up -d
+
+# Check for it running (should show both containers - API + DB with status running or up)
+
+docker ps
+
+# To stop it (ONLY IF CHANGES ARE MADE and we need to update)
+
+docker-compose down
