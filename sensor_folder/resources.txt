@@ -1,0 +1,3 @@
+https://randomnerdtutorials.com/esp8266-load-cell-hx711/
+https://randomnerdtutorials.com/esp8266-nodemcu-mpu-6050-accelerometer-gyroscope-arduino/
+https://randomnerdtutorials.com/esp8266-ds18b20-temperature-sensor-web-server-with-arduino-ide/
