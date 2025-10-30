@@ -3,6 +3,8 @@ import prisma from "../db.js";
 
 const router = express.Router();
 
+// Part of the code below includes copying/modification of code from previous courses (particularly ECE1724 - Web Development in React), official library docs and some AI tools
+
 // GET - current threshold (there should be only 1)
 router.get("/", async (req, res) => {
   const threshold = await prisma.threshold.findFirst();

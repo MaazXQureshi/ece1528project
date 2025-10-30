@@ -12,13 +12,13 @@ git pull
 
 docker-compose build --no-cache
 
-# Run migration (ONLY IF CHANGES ARE MADE)
-
-docker exec -it backend_backend_1 npx prisma migrate dev --name init
-
 # Run the container
 
 docker-compose up -d
+
+# Run migration (ONLY IF CHANGES ARE MADE)
+
+docker exec -it backend_backend_1 npx prisma migrate dev --name init
 
 # Check for it running (should show both containers - API + DB with status running or up)
 

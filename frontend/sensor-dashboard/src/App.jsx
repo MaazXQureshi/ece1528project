@@ -3,6 +3,8 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Part of the code below includes copying/modification of code from previous courses (particularly ECE1724 - Web Development in React), official library docs and some AI tools
+
 function App() {
   const [reading, setReading] = useState(null);
   const [threshold, setThreshold] = useState("");
@@ -14,8 +16,8 @@ function App() {
       console.log(API_URL);
       const res = await axios.get(`${API_URL}/readings/latest/1`);
       setReading(res.data[0]);
-    } catch (err) {
-      console.error("Error fetching latest reading:", err);
+    } catch (error) {
+      console.error("Error fetching latest reading:", error);
     }
   };
 
@@ -23,8 +25,8 @@ function App() {
     try {
       const res = await axios.get(`${API_URL}/threshold`);
       setThreshold(res.data?.threshold || 0);
-    } catch (err) {
-      console.error("Error fetching threshold:", err);
+    } catch (error) {
+      console.error("Error fetching threshold:", error);
     }
   };
 
@@ -35,13 +37,14 @@ function App() {
       });
       setThreshold(newThreshold);
       setNewThreshold("");
-      alert("Threshold updated successfully!");
-    } catch (err) {
-      console.error("Error updating threshold:", err);
-      alert("Failed to update threshold.");
+      alert("Threshold updated successfully");
+    } catch (error) {
+      console.error("Error updating threshold:", error);
+      alert("Failed to update threshold");
     }
   };
 
+  // https://stackoverflow.com/questions/64363561/refresh-data-received-from-an-api-every-minute-react-javascript
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -50,7 +53,7 @@ function App() {
     };
 
     fetchData();
-    const interval = setInterval(fetchLatestReading, 60000); // Can change this to refresh every X ms - currently 60s
+    const interval = setInterval(fetchLatestReading, 10000); // Can change this to refresh every X ms - currently 10s - change to 60s or more later
     return () => clearInterval(interval);
   }, []);
 
@@ -121,10 +124,6 @@ function App() {
           </div>
         </div>
       </div>
-
-      <p className="mt-6 text-gray-500 text-sm">
-        Auto-refreshing every 60 seconds
-      </p>
     </div>
   );
 }
