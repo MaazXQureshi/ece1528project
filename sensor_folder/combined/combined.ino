@@ -1,6 +1,7 @@
 #include <MPU6050_light.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <LiquidCrystal_I2C.h>
 #include "Wire.h"
 #include "MqttClient.h"
 #include "WifiClient.h"
@@ -20,6 +21,9 @@ MPU6050 mpu(Wire);
 const int oneWireBus = D2;
 OneWire oneWire(oneWireBus); 
 DallasTemperature sensors(&oneWire);
+
+// Initialize the LCD.
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Wi-Fi login credientials (should modify according to the your Wi-Fi).
 char ssid_wifi[] = "BELL318";
@@ -59,8 +63,12 @@ void setup(void) {
   mpu.calcOffsets(); // gyro and accelero
   Serial.println("Done!\n");
 
-  // Start the DS18B20 sensor
+  // Start the DS18B20 sensor.
   sensors.begin();
+
+  // Start the LCD.
+  lcd.init();
+  lcd.backlight();
 
   delay(100);
 }
@@ -78,7 +86,12 @@ void loop() {
     // DS18B20 sensor.
     sensors.requestTemperatures();
     float temperatureC = sensors.getTempCByIndex(0);
-    Serial.println("Temp: " + String(temperatureC) + "ºC");
+
+    // Print the temperature to the LCD on the second row, first column.
+    lcd.setCursor(0, 1);
+    lcd.print("Temp: ");
+    lcd.print(String(temperatureC));
+    lcd.print(" degC");
 
     // Connect to the MQTT to send data.
     mqtt_client.check_connection(client_id);
