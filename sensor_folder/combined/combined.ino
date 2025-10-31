@@ -95,10 +95,10 @@ void loop() {
     float temperatureC = sensors.getTempCByIndex(0);
 
     // Print the temperature to the LCD on the second row, first column.
+    lcd.setCursor(0, 0);
+    lcd.print("Volume: ");
     lcd.setCursor(0, 1);
-    lcd.print("Temp: ");
-    lcd.print(String(temperatureC));
-    lcd.print(" degC");
+    lcd.print("Temp: " + String(temperatureC) + " degC");
 
     // Light up the LED if the pitch is above a certain degree.
     if (abs(roll) > SPILLING_DEGREE) {
