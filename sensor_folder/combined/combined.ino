@@ -25,6 +25,10 @@ DallasTemperature sensors(&oneWire);
 // Initialize the LCD.
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
+// External LED is connected to board's digital pin D13.
+#define LED D13
+#define SPILLING_DEGREE 20
+
 // Wi-Fi login credientials (should modify according to the your Wi-Fi).
 char ssid_wifi[] = "BELL318";
 char pass_wifi[] = "A2761E9A66C7";
@@ -70,6 +74,9 @@ void setup(void) {
   lcd.init();
   lcd.backlight();
 
+  // Initialize the external LED.
+  pinMode(LED, OUTPUT);
+
   delay(100);
 }
 
@@ -92,6 +99,14 @@ void loop() {
     lcd.print("Temp: ");
     lcd.print(String(temperatureC));
     lcd.print(" degC");
+
+    // Light up the LED if the pitch is above a certain degree.
+    if (abs(roll) > SPILLING_DEGREE) {
+      digitalWrite(LED, HIGH);
+    }
+    else {
+      digitalWrite(LED, LOW);
+    }
 
     // Connect to the MQTT to send data.
     mqtt_client.check_connection(client_id);
