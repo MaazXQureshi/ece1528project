@@ -10,12 +10,22 @@ datasource db {
 model Reading {
   id          Int      @id @default(autoincrement())
   volume      Float
-  angle       Float
+  roll        Float
+  pitch       Float
+  yaw         Float
   temperature Float
   time        DateTime @default(now())
+  bottle_id   Int
 }
 
 model Threshold {
   id        Int    @id @default(autoincrement())
+  bottle_id Int
   threshold Float
+}
+
+model Cleaning {
+  id        Int    @id @default(autoincrement())
+  bottle_id Int
+  cleaning  Bool
 }

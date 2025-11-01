@@ -5,12 +5,19 @@ const router = express.Router();
 
 // Part of the code below includes copying/modification of code from previous courses (particularly ECE1724 - Web Development in React), official library docs and some AI tools
 
-// POST
-router.post("/", async (req, res) => {
+// POST (use bottle_id as parameter)
+router.post("/:bottle_id", async (req, res) => {
   try {
-    const { volume, angle, temperature } = req.body;
+    const { volume, roll, pitch, yaw, temperature } = req.body;
     const reading = await prisma.reading.create({
-      data: { volume, angle, temperature },
+      data: {
+        volume,
+        roll,
+        pitch,
+        yaw,
+        temperature,
+        bottle_id: Number(req.params.bottle_id),
+      },
     });
     res.json(reading);
   } catch (err) {
@@ -31,11 +38,12 @@ router.get("/id/:id", async (req, res) => {
   }
 });
 
-// GET - Latest X readings (use count as parameter)
-router.get("/latest/:count", async (req, res) => {
+// GET - Latest X readings (use bottle_id and count as parameter)
+router.get("/:bottle_id/latest/:count", async (req, res) => {
   try {
     const count = Number(req.params.count);
     const readings = await prisma.reading.findMany({
+      where: { bottle_id: Number(req.params.bottle_id) },
       orderBy: { time: "desc" },
       take: count,
     });
