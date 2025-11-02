@@ -1,6 +1,6 @@
 import express from "express";
 import prisma from "../db.js";
-import { sendAlertEmail } from "../mail.js";
+import { sendAlertEmail } from "../app.js";
 
 const router = express.Router();
 
@@ -10,6 +10,7 @@ const router = express.Router();
 router.post("/:bottle_id", async (req, res) => {
   try {
     const { volume, roll, pitch, yaw, temperature } = req.body;
+    const bottle_id = parseInt(req.params.bottle_id, 10);
     const reading = await prisma.reading.create({
       data: {
         volume,
@@ -17,7 +18,7 @@ router.post("/:bottle_id", async (req, res) => {
         pitch,
         yaw,
         temperature,
-        bottle_id: Number(req.params.bottle_id),
+        bottle_id,
       },
     });
 
@@ -28,7 +29,7 @@ router.post("/:bottle_id", async (req, res) => {
 
     if (thresholdRecord && volume < thresholdRecord.threshold) {
       await sendAlertEmail({
-        bottle_id: Number(req.params.bottle_id),
+        bottle_id,
         volume,
         threshold: thresholdRecord.threshold,
       });
