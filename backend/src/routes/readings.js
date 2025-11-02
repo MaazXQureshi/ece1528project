@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../db.js";
+import { sendAlertEmail } from "../mail.js";
 
 const router = express.Router();
 
@@ -19,6 +20,20 @@ router.post("/:bottle_id", async (req, res) => {
         bottle_id: Number(req.params.bottle_id),
       },
     });
+
+    // Threshold checking for email sending
+    const thresholdRecord = await prisma.threshold.findFirst({
+      where: { bottle_id },
+    });
+
+    if (thresholdRecord && volume < thresholdRecord.threshold) {
+      await sendAlertEmail({
+        bottle_id: Number(req.params.bottle_id),
+        volume,
+        threshold: thresholdRecord.threshold,
+      });
+    }
+
     res.json(reading);
   } catch (err) {
     res.status(500).json({ error: err.message });
