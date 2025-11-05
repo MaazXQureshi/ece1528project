@@ -22,7 +22,7 @@ MPU6050 mpu(Wire);
 // Initialize the load cell and HX711.
 const int LOADCELL_DOUT_PIN = 12;
 const int LOADCELL_SCK_PIN = 13;
-#define CALIBRATION_FACTOR -416.4601307
+#define CALIBRATION_FACTOR -424.7893333
 HX711 scale;
 
 // GPIO where the DS18B20 is connected to
