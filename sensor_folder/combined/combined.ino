@@ -10,6 +10,7 @@
 #include <Arduino.h>
 
 #define SEND_INTERVAL 500
+#define BOTTLE_ID 1
 #define DENSITY_OF_LIQUID_IN_GRAMS_PER_ML 1.0
 
 // Interval used to send data to MQTT.
@@ -49,17 +50,6 @@ const int mqtt_broker_port = 1883;
 const char* client_id = "publisher_sensors";
 const char* publish_topic = "MQTT_Sensor_Data";
 MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port);
-
-// Helper function to convert 64-bit ID address into a string.
-String idToString(const DeviceAddress& deviceID) {
-  String final_result = "";
-
-  for (int i = 0; i < 8; ++i) {
-    final_result += String(deviceID[i], HEX);
-  }
-
-  return final_result;
-}
 
 void setup(void) {
   Serial.begin(115200);
@@ -142,16 +132,12 @@ void loop() {
     mqtt_client.check_connection(client_id);
 
     // Get the unique bottle ID to distinguish between different bottles.
-    // ID is obtained from DS18B20 which has a unique address per sensor.
-    DeviceAddress bottle_id;
-    sensors.getAddress(bottle_id, 0);
-    String bottle_id_string = idToString(bottle_id);
-    Serial.print("Bottle ID: " + bottle_id_string);
+    Serial.print("Bottle ID: " + String(BOTTLE_ID));
 
     // First, we need to convert the readings to JSON that matches the API of the
     // backend.
     DynamicJsonDocument doc(1024);
-    doc["bottle_id"] = bottle_id_string;
+    doc["bottle_id"] = BOTTLE_ID;
     doc["volume"] = volume_in_milligrams;
     doc["temperature"] = temperatureC;
     doc["roll"] = roll;
