@@ -12,6 +12,9 @@ idx_reading = "readings"
 idx_threshold = "threshold"
 idx_cleaning = "cleaning"
 
+# To check whether to send an initial actuation command to inform the bottle
+# what the threshold and cleaning mode is.
+initial_bottles = dict()
 dic_bottles = {}
 dic_topics_act = {}
 bottle_id = np.zeros(3, dtype=bool)
@@ -33,6 +36,7 @@ def bottle_register(dict_id):
     bottle_id[dict_id] = True
     dic_bottles[dict_id] = {"threshold": -1, "cleaning": 0}
     dic_topics_act[dict_id] = mqtt_actuator_topic + "_" + str(dict_id)
+    initial_bottles[dict_id] = True
 
 
 def on_connect(client, userdata, flags, rc):
@@ -44,10 +48,15 @@ def on_message(client, userdata, msg):
     payloadJson = json.loads(msg.payload.decode("utf-8"))
     dict_id = int(payloadJson["bottle_id"])
     if bottle_id[dict_id] == False:
+        print("MQTT - msg received - " + msg.topic + " - " + payload)
         bottle_register(dict_id)
-    del payloadJson["bottle_id"]
-    print("MQTT - msg received - " + msg.topic + " - " + payload)
-    query(url=url + idx_reading + "/" + str(dict_id), method="POST", payload=payloadJson)
+    else:
+        # Only post the data when it is not a registration message.
+        if bool(payloadJson["initialMessage"]) == False:
+            del payloadJson["bottle_id"]
+            del payloadJson["initialMessage"]
+            print("MQTT - msg received - " + msg.topic + " - " + payload)
+            query(url=url + idx_reading + "/" + str(dict_id), method="POST", payload=payloadJson)
 
 def on_message_test(client, userdata, msg):
     payload = msg.payload.decode("utf-8")

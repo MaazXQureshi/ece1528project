@@ -16,6 +16,12 @@
 // Interval used to send data to MQTT.
 unsigned long timer = 0;
 
+// Actuation command parameters.
+#define THRESHOLD_STRING "threshold"
+#define CLEANING_STRING "cleaning"
+std::optional<double> threshold = std::nullopt;
+std::optional<bool> cleaning_mode = std::nullopt;
+
 // Initialize the MPU6050 light library.
 MPU6050 mpu(Wire);
 
@@ -33,11 +39,11 @@ OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 
 // Initialize the LCD.
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+#define LCD_WIDTH 16
+LiquidCrystal_I2C lcd(0x27, LCD_WIDTH, 2);
 
 // External LED is connected to board's digital pin D13.
 #define LED D13
-#define SPILLING_DEGREE 20
 
 // Wi-Fi login credientials (should modify according to the your Wi-Fi).
 char ssid_wifi[] = "BELL318";
@@ -49,7 +55,29 @@ const char* mqtt_broker_ip = "192.168.2.43";
 const int mqtt_broker_port = 1883;
 const char* client_id = "publisher_sensors";
 const char* publish_topic = "MQTT_Sensor_Data";
-MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port);
+const int num_subscribe_topics = 1;
+String subscribe_topics[num_subscribe_topics] = {"MQTT_Actuator_Data_" + String(BOTTLE_ID)};
+MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port, subscribe_topics, num_subscribe_topics);
+
+// Helper function to send JSON data to MQTT.
+void sendJSONMessageToMQTT(const DynamicJsonDocument& doc) {
+  String json_doc;
+  serializeJson(doc, json_doc);
+  char buf[500];
+  json_doc.toCharArray(buf, 500);
+  mqtt_client.publish_message(publish_topic, buf);
+}
+
+// Helper function to print message on LCD.
+void printMessageOnLCD(LiquidCrystal_I2C& lcd, const String& str) {
+  if (str.length() < LCD_WIDTH) {
+    uint8_t numberOfSpaces = LCD_WIDTH - str.length();
+    lcd.print(str + std::string(numberOfSpaces, ' ').c_str());
+  }
+  else {
+    lcd.print(str);
+  }
+}
 
 void setup(void) {
   Serial.begin(115200);
@@ -97,64 +125,107 @@ void setup(void) {
 
 void loop() {
   mpu.update();
-  
-  if ((millis() - timer) > SEND_INTERVAL) {
-    // Load cell and HX711 sensor.
-    scale.power_up();
-    float weight_in_grams = scale.get_units();
-    float volume_in_milligrams = weight_in_grams / DENSITY_OF_LIQUID_IN_GRAMS_PER_ML;
 
-    // MPU6050 sensor.
-    float roll = mpu.getAngleX();
-    float pitch = mpu.getAngleY();
-    float yaw = mpu.getAngleZ();
-    Serial.println("Degrees: Roll : " + String(roll) + ", Pitch: " + String(pitch) + ", Yaw: " + String(yaw));
-    
-    // DS18B20 sensor.
-    sensors.requestTemperatures();
-    float temperatureC = sensors.getTempCByIndex(0);
+  // Connect to the MQTT to send data.
+  mqtt_client.check_connection(client_id);
 
-    // Print the temperature to the LCD on the second row, first column.
-    lcd.setCursor(0, 0);
-    lcd.print(String(volume_in_milligrams) + " mL             ");
-    lcd.setCursor(0, 1);
-    lcd.print("Temp: " + String(temperatureC) + " degC     ");
+  // Get the actuation commands.
+  String actuation_command = mqtt_client.get_msg();
 
-    // Light up the LED if the pitch is above a certain degree.
-    if (abs(roll) > SPILLING_DEGREE) {
-      digitalWrite(LED, HIGH);
+  if (actuation_command.equals("") == false) {
+    JsonDocument doc;
+    DeserializationError err = deserializeJson(doc, actuation_command);
+
+    if (err) {
+      Serial.println("Having trouble extracting actuation command!!! Help!!!");
     }
     else {
-      digitalWrite(LED, LOW);
+      threshold = doc[THRESHOLD_STRING];
+      cleaning_mode = doc[CLEANING_STRING];
+      Serial.println("Updated threshold to " + String(*threshold) + " and cleaning mode to " + String(*cleaning_mode));
     }
 
-    // Connect to the MQTT to send data.
-    mqtt_client.check_connection(client_id);
+    // Acknowledge that the message is received.
+    mqtt_client.reset_msg();
+  }
 
-    // Get the unique bottle ID to distinguish between different bottles.
-    Serial.print("Bottle ID: " + String(BOTTLE_ID));
+  if ((millis() - timer) > SEND_INTERVAL) {
+    // Initial registration message to let the initial MQTT bridge know that
+    // this bottle is ready to go.
+    if (threshold.has_value() == false || cleaning_mode.has_value() == false) {
+      DynamicJsonDocument doc(1024);
+      doc["bottle_id"] = BOTTLE_ID;
+      doc["initialMessage"] = true;
 
-    // First, we need to convert the readings to JSON that matches the API of the
-    // backend.
-    DynamicJsonDocument doc(1024);
-    doc["bottle_id"] = BOTTLE_ID;
-    doc["volume"] = volume_in_milligrams;
-    doc["temperature"] = temperatureC;
-    doc["roll"] = roll;
-    doc["pitch"] = pitch;
-    doc["yaw"] = yaw;
+      // Sending the JSON to MQTT.
+      sendJSONMessageToMQTT(doc);
 
-    // Sending the JSON to MQTT.
-    String json_doc;
-    serializeJson(doc, json_doc);
-    char buf[500];
-    json_doc.toCharArray(buf, 500);
-    mqtt_client.publish_message(publish_topic, buf);
+      lcd.setCursor(0, 0);
+      printMessageOnLCD(lcd, "Waiting for");
+      lcd.setCursor(0, 1);
+      printMessageOnLCD(lcd, "ActuationCommand");
+    }
+    else {
+      // In cleaning mode, pause all the sensors and message publishing.
+      if (*cleaning_mode == true) {
+        lcd.setCursor(0, 0);
+        printMessageOnLCD(lcd, "Cleaning Mode");
+        lcd.setCursor(0, 1);
+        printMessageOnLCD(lcd, "Readings paused");
+      }
+      else {
+        // Load cell and HX711 sensor.
+        scale.power_up();
+        float weight_in_grams = scale.get_units();
+        float volume_in_milligrams = weight_in_grams / DENSITY_OF_LIQUID_IN_GRAMS_PER_ML;
+
+        // MPU6050 sensor.
+        float roll = mpu.getAngleX();
+        float pitch = mpu.getAngleY();
+        float yaw = mpu.getAngleZ();
+        Serial.println("Degrees: Roll : " + String(roll) + ", Pitch: " + String(pitch) + ", Yaw: " + String(yaw));
+        
+        // DS18B20 sensor.
+        sensors.requestTemperatures();
+        float temperatureC = sensors.getTempCByIndex(0);
+
+        // Print the temperature to the LCD on the second row, first column.
+        lcd.setCursor(0, 0);
+        printMessageOnLCD(lcd, String(volume_in_milligrams) + " mL");
+        lcd.setCursor(0, 1);
+        printMessageOnLCD(lcd, "Temp: " + String(temperatureC) + " degC");
+
+        // Light up the volume exceeds threshold.
+        if (volume_in_milligrams > *threshold) {
+          digitalWrite(LED, HIGH);
+        }
+        else {
+          digitalWrite(LED, LOW);
+        }
+
+        // Get the unique bottle ID to distinguish between different bottles.
+        Serial.println("Bottle ID: " + String(BOTTLE_ID));
+
+        // First, we need to convert the readings to JSON that matches the API of the
+        // backend.
+        DynamicJsonDocument doc(1024);
+        doc["bottle_id"] = BOTTLE_ID;
+        doc["initialMessage"] = false;
+        doc["volume"] = volume_in_milligrams;
+        doc["temperature"] = temperatureC;
+        doc["roll"] = roll;
+        doc["pitch"] = pitch;
+        doc["yaw"] = yaw;
+
+        // Sending the JSON to MQTT.
+        sendJSONMessageToMQTT(doc);
+
+        // Power down scale to save energy.
+        scale.power_down(); 
+      }
+    }
 
     // Update timer to accurately determine when to take the data sample again.
     timer = millis(); 
-
-    // Power down scale to save energy.
-    scale.power_down();
   }
 }
