@@ -14,7 +14,7 @@ idx_cleaning = "cleaning"
 
 dic_bottles = {}
 dic_topics_act = {}
-bottle_id = np.zeros(3, dtype=np.bool)
+bottle_id = np.zeros(3, dtype=bool)
 
 def query(url, method, payload=None):
     try:
