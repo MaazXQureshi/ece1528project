@@ -13,6 +13,7 @@ function App() {
   const [cleanings, setCleanings] = useState([false, false]);
   const [newThresholds, setNewThresholds] = useState(["", ""]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState(["", ""]);
 
   const fetchLatestReading = async (bottle_id) => {
     try {
@@ -56,6 +57,21 @@ function App() {
 
   const updateThreshold = async (bottle_id) => {
     try {
+      if (parseFloat(newThresholds[bottle_id - 1]) <= 0) {
+        setErrors((prev) => {
+          const updated = [...prev];
+          updated[bottle_id - 1] = "Only positive thresholds allowed";
+          return updated;
+        });
+        return;
+      }
+
+      setErrors((prev) => {
+        const updated = [...prev];
+        updated[bottle_id - 1] = "";
+        return updated;
+      });
+
       await axios.put(`${API_URL}/threshold/${bottle_id}`, {
         threshold: parseFloat(newThresholds[bottle_id - 1]),
       });
@@ -213,6 +229,9 @@ function App() {
                   Update
                 </button>
               </div>
+              {errors[bottle_id - 1] && (
+                <div className="text-red-400">{errors[bottle_id - 1]}</div>
+              )}
             </div>
 
             {/* Cleaning Mode Section */}
