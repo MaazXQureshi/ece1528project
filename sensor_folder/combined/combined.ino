@@ -195,8 +195,8 @@ void loop() {
         lcd.setCursor(0, 1);
         printMessageOnLCD(lcd, "Temp: " + String(temperatureC) + " degC");
 
-        // Light up the volume exceeds threshold.
-        if (volume_in_milligrams > *threshold) {
+        // Light up the volume is below threshold.
+        if (volume_in_milligrams < *threshold) {
           digitalWrite(LED, HIGH);
         }
         else {
