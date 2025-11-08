@@ -1,0 +1,26 @@
+
+Actuators Data:
+For each bottle, the data is sent when there is a change in the data on the cloud on the 
+topic MQTT_Actuator_Data_"bottle_id" where bottle_id is 1 or 2.
+The data is in JSON format:
+{
+    "threshold": float,
+    "cleaning": int (0 or 1)
+} There is no need for identifier here since the topic identifies the bottle.
+
+Sensors Data:
+For each bottle, the data is sent on the topic MQTT_Sensor_Data.
+The data is in JSON format:
+{
+    "initialMessage": bool
+    "bottle_id": int (1 or 2),
+    "volume": float,
+    "roll": float,
+    "pitch": float,
+    "yaw": float,
+    "temperature": float
+}
+
+The bottle is registered by the MQTT client once the bottle publishes a message to the topic MQTT_Sensor_Data with "initialMessage" field true. After that
+the MQTT client sends actuator data periodically from the cloud to the MQTT broker in the specific topic of the water bottle.
+
