@@ -191,7 +191,7 @@ void loop() {
 
         // Print the temperature to the LCD on the second row, first column.
         lcd.setCursor(0, 0);
-        printMessageOnLCD(lcd, String(volume_in_milligrams) + " mL");
+        printMessageOnLCD(lcd, "Vol:" + String(volume_in_milligrams) + " mL");
         lcd.setCursor(0, 1);
         printMessageOnLCD(lcd, "Temp: " + String(temperatureC) + " degC");
 
