@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - /mnt/volume-tor1-01:/var/lib/postgresql
+      - /mnt/volume_tor1_01:/var/lib/postgresql
     ports:
       - "127.0.0.1:5432:5432"
 
