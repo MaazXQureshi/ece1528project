@@ -2,8 +2,8 @@ from mqtt_config_tester import *
 
 mqttc_tester1 = connect(mqtt_broker_ip)
 mqttc_tester2 = connect(mqtt_broker_ip)
-mqttc_tester1.subscribe(mqtt_actuator_topic + "_1")
-mqttc_tester2.subscribe(mqtt_actuator_topic + "_2")
+mqttc_tester1.subscribe(mqtt_actuator_topic + "_1",1)
+mqttc_tester2.subscribe(mqtt_actuator_topic + "_2",1)
 mqttc_tester1.loop_start()
 mqttc_tester2.loop_start()
 mqttc_tester1.publish(mqtt_registration, json.dumps({"id":1}), 1)
