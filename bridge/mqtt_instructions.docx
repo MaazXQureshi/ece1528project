@@ -110,14 +110,14 @@ and "http://143.198.33.14:8080/cleaning/<id>", where <id> is the bottle ID.
 -------------------------
 the expected JSON-formatted message for threshold is:
 {
-    "threshold":float
+    "th":float
 }
-"threshold" is the threshold for the volume of liquid in mL
+"th" is the threshold for the volume of liquid in mL
 the expected JSON-formatted message for cleaning mode is:
 {
-    "cleaning":boolean
+    "clean":boolean
 }
-"cleaning" is true if the cleaning mode is activated, false otherwise
+"clean" is true if the cleaning mode is activated, false otherwise
 -------------------------
 Note:
 -The actuator data is only retrieved for registered IoT devices.
