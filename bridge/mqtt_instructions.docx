@@ -1,26 +1,125 @@
 
-Actuators Data:
-For each bottle, the data is sent when there is a change in the data on the cloud on the 
-topic MQTT_Actuator_Data_"bottle_id" where bottle_id is 1 or 2.
-The data is in JSON format:
-{
-    "threshold": float,
-    "cleaning": int (0 or 1)
-} There is no need for identifier here since the topic identifies the bottle.
+############  MQTT Instructions #############
+#General Information
 
-Sensors Data:
-For each bottle, the data is sent on the topic MQTT_Sensor_Data.
-The data is in JSON format:
+1) We use MQTT 3.1.1v (default value in the Paho library).
+2) https:#www.hivemq.com/blog/mqtt-essentials-part-6-mqtt-quality-of-service-levels/
+   QoS levels based on the above link:
+   - 0: no acknowledgement (good for efficiency and non-critical messages)
+   - 1: the message is guaranteed to be delivered at least once (it requires an acknowledgement)
+   - 2: the message is guaranteed to be delivered exactly once (it requires many control packets; communication overhead is large)
+
+############  IoT-Edge Communication #############
+
+#Sensor data from IoT devices to the edge
+the edge subscribes to the topic "Sen_Data" with qos equal to zero.
+-------------------------
+the expected JSON-formatted message is:
 {
-    "initialMessage": bool
-    "bottle_id": int (1 or 2),
-    "volume": float,
-    "roll": float,
-    "pitch": float,
-    "yaw": float,
-    "temperature": float
+    "id":int,
+    "vol":float,
+    "temp":float
 }
+"id" is the bottle ID
+"vol" is the volume of liquid in the bottle in mL
+"temp" is the temperature of the liquid in Celsius
+-------------------------
+Note:
+-The sensor readings are only received if the IoT device is registered.
 
-The bottle is registered by the MQTT client once the bottle publishes a message to the topic MQTT_Sensor_Data with "initialMessage" field true. After that
-the MQTT client sends actuator data periodically from the cloud to the MQTT broker in the specific topic of the water bottle.
+#Registering an IoT device
+the edge subscribes to the topic "Reg_Msg" with qos equal to one.
+-------------------------
+the expected JSON-formatted message is:
+{
+    "id":int
+}
+"id" is the bottle ID
+-------------------------
+Note:
+-If no message is received from a particular bottle within one minute, it is deregistered and 
+a new registration is required.
 
+#Spilling flag from IoT devices to the edge
+the edge subscribes to the topic "Spill_Flag" with qos equal to one.
+-------------------------
+the expected JSON-formatted message is:
+{
+    "id":int,
+    "flag":boolean,
+    "seq":int
+}
+"id" is the bottle ID
+"flag" is true if a spill is detected, false otherwise
+"seq" is the sequence number of the spilling message to guaranteed that old messages are ignored in case they arrive out of order
+-------------------------
+Note:
+-The spill flags are only received if the IoT device is registered.
+-If spill flag is true, sensor reading messages from the bottle is ignored until a new spill flag message with false arrives.
+
+#Actuator Data to IoT devices
+the edge publishes to the topic "Act_Data_<id>" with qos equal to one,
+where <id> is the bottle ID.
+-------------------------
+the sent JSON-formatted message is:
+{
+    "th":float,
+    "clean":boolean
+}
+"th" is the threshold for the volume of liquid in mL
+"clean" is true if the cleaning mode is activated, false otherwise
+-------------------------
+Note:
+-The actuator data is only sent to registered IoT devices.
+-The actuator data is only sent when there is a change in threshold or cleaning mode.
+-The data can be sent in intervals of a few seconds. Currently, the interval is 10 seconds.
+
+############  Cloud-Edge Communication #############
+
+#Sensor data from the edge to the cloud
+the edge sends sensor data to the cloud via POST methods to "http://143.198.33.14:8080/readings/<id>",
+where <id> is the bottle ID.
+-------------------------
+the sent JSON-formatted message is:
+{
+    "vol":float,
+    "temp":float
+}
+"vol" is the volume of liquid in the bottle in mL
+"temp" is the temperature of the liquid in Celsius
+-------------------------
+Note:
+-The sensor readings are only sent if the IoT device is registered and no spill is detected.
+
+#Spilling flag from the edge to the cloud
+the edge sends spill flags to the cloud via POST methods to "http:#143.198.33.14:8080/spilling/<id>"
+where <id> is the bottle ID.
+-------------------------
+the sent JSON-formatted message is:
+{
+    "flag":boolean
+}
+"flag" is true if a spill is detected, false otherwise
+-------------------------
+Note:
+-The spill flags are only sent if the IoT device is registered.
+
+#Actuator data from the cloud to the edge
+the edge retrieves actuator data from the cloud via GET methods to "http://143.198.33.14:8080/threshold/<id>"
+and "http://143.198.33.14:8080/cleaning/<id>", where <id> is the bottle ID.
+-------------------------
+the expected JSON-formatted message for threshold is:
+{
+    "threshold":float
+}
+"threshold" is the threshold for the volume of liquid in mL
+the expected JSON-formatted message for cleaning mode is:
+{
+    "cleaning":boolean
+}
+"cleaning" is true if the cleaning mode is activated, false otherwise
+-------------------------
+Note:
+-The actuator data is only retrieved for registered IoT devices.
+
+############  End of Document #############
