@@ -236,13 +236,13 @@ void loop() {
   // Connect to the MQTT to send data.
   mqtt_client.check_connection(client_id, callback);
 
-  // Check if we have received actuation command from the Raspberry Pi in the
-  // past minute. If not, the connection may have been lost.
-  if ((millis() - actuation_timer) > ACTUATION_TIMEOUT_PERIOD) {
-    is_bottle_registered = false;
-  }
-
   if ((millis() - timer) > SEND_INTERVAL) {
+    // Check if we have received actuation command from the Raspberry Pi in the
+    // past minute. If not, the connection may have been lost.
+    if ((millis() - actuation_timer) > ACTUATION_TIMEOUT_PERIOD) {
+      is_bottle_registered = false;
+    }
+
     if (is_bottle_registered == true) {
       // In cleaning mode, pause all the sensors and message publishing.
       if (*cleaning_mode == true) {
