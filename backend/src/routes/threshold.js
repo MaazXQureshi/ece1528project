@@ -13,11 +13,11 @@ router.get("/:bottle_id", async (req, res) => {
       return res.status(400).json({ error: "Invalid bottle_id" });
     }
 
-    const threshold = await prisma.threshold.findFirst({
+    const th = await prisma.threshold.findFirst({
       where: { bottle_id },
     });
 
-    res.json(threshold || {});
+    res.json(th || {});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -27,12 +27,12 @@ router.get("/:bottle_id", async (req, res) => {
 router.put("/:bottle_id", async (req, res) => {
   try {
     const bottle_id = parseInt(req.params.bottle_id, 10);
-    const { threshold } = req.body;
+    const { th } = req.body;
 
     if (isNaN(bottle_id)) {
       return res.status(400).json({ error: "Invalid bottle_id" });
     }
-    if (threshold === undefined) {
+    if (th === undefined) {
       return res.status(400).json({ error: "Missing 'threshold' value" });
     }
 
@@ -45,11 +45,11 @@ router.put("/:bottle_id", async (req, res) => {
     if (existing) {
       updated = await prisma.threshold.update({
         where: { id: existing.id },
-        data: { threshold },
+        data: { th },
       });
     } else {
       updated = await prisma.threshold.create({
-        data: { bottle_id, threshold },
+        data: { bottle_id, th },
       });
     }
 

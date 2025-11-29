@@ -9,15 +9,12 @@ const router = express.Router();
 // POST (use bottle_id as parameter)
 router.post("/:bottle_id", async (req, res) => {
   try {
-    const { volume, roll, pitch, yaw, temperature } = req.body;
+    const { vol, temp } = req.body;
     const bottle_id = parseInt(req.params.bottle_id, 10);
     const reading = await prisma.reading.create({
       data: {
-        volume,
-        roll,
-        pitch,
-        yaw,
-        temperature,
+        vol,
+        temp,
         bottle_id,
       },
     });
@@ -27,12 +24,14 @@ router.post("/:bottle_id", async (req, res) => {
       where: { bottle_id },
     });
 
-    if (thresholdRecord && volume < thresholdRecord.threshold) {
-      await sendAlertEmail({
-        bottle_id,
-        volume,
-        threshold: thresholdRecord.threshold,
-      });
+    if (thresholdRecord && vol < thresholdRecord.th) {
+      if (process.env.EMAIL_ON) {
+        await sendAlertEmail({
+          bottle_id,
+          vol,
+          th: thresholdRecord.th,
+        });
+      }
     }
 
     res.json(reading);

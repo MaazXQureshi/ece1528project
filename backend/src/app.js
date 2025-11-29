@@ -13,12 +13,23 @@ const app = express();
 const sendgridClient = new MailService();
 sendgridClient.setApiKey(process.env.SENDGRID_API_KEY);
 
-export async function sendAlertEmail({ bottle_id, volume, threshold }) {
+export async function sendAlertEmail({ bottle_id, vol, th }) {
   const msg = {
     to: process.env.ALERT_EMAIL_RECIPIENT,
     from: process.env.FROM_EMAIL,
     subject: `Alert — Bottle ${bottle_id} below threshold`,
-    text: `Bottle ${bottle_id}'s volume is currently ${volume} ml, below set threshold of ${threshold}.`,
+    text: `Bottle ${bottle_id}'s volume is currently ${vol} ml, below set threshold of ${th}.`,
+  };
+
+  await sendgridClient.send(msg);
+}
+
+export async function sendSpillingEmail(bottle_id) {
+  const msg = {
+    to: process.env.ALERT_EMAIL_RECIPIENT,
+    from: process.env.FROM_EMAIL,
+    subject: `Alert — Bottle ${bottle_id} is at risk of spilling`,
+    text: `Bottle ${bottle_id} is currently at risk of spilling.`,
   };
 
   await sendgridClient.send(msg);
