@@ -31,7 +31,7 @@ unsigned long seq_counter_for_spilling = 0;
 // Initialize the load cell and HX711.
 const int LOADCELL_DOUT_PIN = 12;
 const int LOADCELL_SCK_PIN = 13;
-#define CALIBRATION_FACTOR -424.7893333
+#define CALIBRATION_FACTOR 432.1866667
 HX711 scale;
 
 // GPIO where the DS18B20 is connected to
