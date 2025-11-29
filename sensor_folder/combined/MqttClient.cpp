@@ -3,8 +3,6 @@
 #include <ESP8266WiFi.h>
 
 WiFiClient _wifi_client;
-String _msg;
-String _topic;
 int _num_subscribe_topics;
 
 MqttClient::MqttClient(const char* mqtt_broker_ip, const int mqtt_broker_port) {
@@ -17,13 +15,7 @@ MqttClient::MqttClient(const char* mqtt_broker_ip, const int mqtt_broker_port, S
   _num_subscribe_topics = num_subscribe_topics;
 }
 
-void callback(String& topic, String& payload) {
-  Serial.println("Message arrived [" + topic + "]: " + payload);
-  _msg = payload;
-  _topic = topic;
-}
-
-void MqttClient::connect(const char* client_id) {
+void MqttClient::connect(const char* client_id, void (*callback)(String&, String&)) {
   Serial.print("Connecting to MQTT broker... ");
   while (!_mqtt_client.connect(client_id, "public", "public")) {
     Serial.print(".");
@@ -37,24 +29,15 @@ void MqttClient::connect(const char* client_id) {
   }
 }
 
-void MqttClient::publish_message(const char* topic, const char* msg) {
-  _mqtt_client.publish(topic, msg);
+void MqttClient::publish_message(const char* topic, const char* msg, int qos) {
+  _mqtt_client.publish(topic, msg, false, qos);
   Serial.println("Message published [ " + String(topic) +" ]: " + String(msg));
 }
 
-void MqttClient::check_connection(const char* client_id) {
+void MqttClient::check_connection(const char* client_id, void (*callback)(String&, String&)) {
   _mqtt_client.loop();
   delay(10);
   if (!_mqtt_client.connected()) {
-    connect(client_id);
+    connect(client_id, callback);
   }
-}
-
-String MqttClient::get_msg() { return _msg; }
-
-String MqttClient::get_topic() { return _topic; }
-
-void MqttClient::reset_msg() {
-  _msg = "";
-  _topic = "";
 }
