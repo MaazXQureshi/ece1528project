@@ -4,19 +4,19 @@ from time import sleep
 import numpy as np
 
 mqtt_broker_ip = "127.0.0.1"
-mqtt_sensor_topic = "Sen_Data"
-mqtt_actuator_topic = "Act_Data"
-mqtt_registration = "Reg_Msg"
 
-initialized = np.zeros(3, dtype=bool)
+mqtt_sensor_topic = "Sen_Data"
+mqtt_spill_topic = "Spill_Flag"
+mqtt_act_topic = "Act_Data"
+mqtt_reg_topic = "Reg_Msg"
+
+#initialized = np.zeros(10, dtype=bool)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQT broker - rc:" + str(rc))
 
 def on_message(client, userdata, msg):
     payload = json.loads(msg.payload)
-    if initialized[int(msg.topic[-1])] == False:
-        initialized[int(msg.topic[-1])] = True 
     print("MQTT - msg received - " + msg.topic + " - " + str(payload))
 
 def on_subscribe(client, userdata, mid, granted_qos):

@@ -89,7 +89,9 @@ the sent JSON-formatted message is:
 "temp" is the temperature of the liquid in Celsius
 -------------------------
 Note:
--The sensor readings are only sent if the IoT device is registered and no spill is detected.
+-The sensor readings are only sent if the IoT device is registered, no spill is detected and cleaning mode is False.
+-The sensor readings should not be sent by the ESP when a spill is detected or cleaning mode is True.
+-We treat that in the edge as well in case the update in the IoT device is delayed. 
 
 #Spilling flag from the edge to the cloud
 the edge sends spill flags to the cloud via POST methods to "http:#143.198.33.14:8080/spilling/<id>"

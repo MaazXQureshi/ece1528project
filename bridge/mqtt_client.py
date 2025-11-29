@@ -18,7 +18,7 @@ def message_processing():
         if FIFO.empty() == False:
             msg = FIFO.get()
             payloadJson = json.loads(msg.payload)
-            print("Msg processing - " + msg.topic + " - " + str(payloadJson))
+            print("Msg process. - " + msg.topic + " - " + str(payloadJson))
             dict_id = int(payloadJson["id"])
             if msg.topic == mqtt_reg_topic:
                 if bottle_reg_flag[dict_id] == False:
@@ -28,23 +28,21 @@ def message_processing():
             elif msg.topic == mqtt_spill_topic:
                 active_flag[dict_id] = True
                 if payloadJson["seq"] > spill_seq[dict_id]:
-                    if payloadJson["spill"] == True:
+                    if payloadJson["flag"] == True:
                         spill_flag[dict_id] = True
-                        print("Spill detected for bottle " + str(dict_id))
+                        print("Spill detected for bottle " + str(dict_id) + "-seq" + str(payloadJson["seq"]))
                     else:
                         spill_flag[dict_id] = False
-                        print("Spill cleared for bottle " + str(dict_id))
-                    #payloadJson = {"spill":spill_flag[dict_id]}
+                        print("Spill cleared for bottle " + str(dict_id) + "-seq" + str(payloadJson["seq"]))
                     del payloadJson["id"]
                     del payloadJson["seq"]
-                    query(url=url + idx_spill + "/" + str(dict_id), method="POST", payload=payloadJson)
+                    query(url=url + idx_spill + "/" + str(dict_id), method="PUT", payload=payloadJson)
                 else:
                     print("Out-of-sequence spill message for bottle " + str(dict_id))
             elif msg.topic == mqtt_sensor_topic:
                 active_flag[dict_id] = True
-                if spill_flag[dict_id] == False:
+                if spill_flag[dict_id] == False and dic_bottles[dict_id]["clean"] == False:
                     del payloadJson["id"]
-                    #payloadJson={"vol":payloadJson["vol"],"temp":payloadJson["temp"]} 
                     query(url=url + idx_reading + "/" + str(dict_id), method="POST", payload=payloadJson)
 
             else:

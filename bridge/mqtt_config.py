@@ -38,16 +38,18 @@ def query(url, method, payload=None):
             return json.loads(response.content)
         elif method == "POST":
             requests.post(url, data=json.dumps(payload), headers={"content-type": "application/json"})
-            return
+        elif method == "PUT":
+            requests.put(url, data=json.dumps(payload),headers={"content-type": "application/json"})
         else:
             print("Invalid method in query")
+        return
     except:
         print(method + "-Connection error-" + url)
 
 def bottle_register(dict_id):
     bottle_id.append(dict_id) 
     bottle_reg_flag[dict_id] = True
-    dic_bottles[dict_id] = {"th": -1.0, "clean": 0}
+    dic_bottles[dict_id] = {"th": -1.0, "clean": False}
     dic_topics_act[dict_id] = mqtt_act_topic + "_" + str(dict_id)
     active_flag[dict_id] = True
     print("Bottle " + str(dict_id) + " registered.")
