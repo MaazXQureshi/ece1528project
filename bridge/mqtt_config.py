@@ -25,6 +25,7 @@ bottle_reg_flag = [False]*10
 spill_flag = [False]*10
 active_flag = [False]*10
 spill_seq = [-1]*10
+keep_alive = [False]*10
 
 FIFO = queue.Queue()
 keepRunning = threading.Event()
@@ -52,6 +53,7 @@ def bottle_register(dict_id):
     dic_bottles[dict_id] = {"th": -1.0, "clean": False}
     dic_topics_act[dict_id] = mqtt_act_topic + "_" + str(dict_id)
     active_flag[dict_id] = True
+    keep_alive[dict_id] = False
     print("Bottle " + str(dict_id) + " registered.")
     return
 
@@ -61,6 +63,7 @@ def bottle_deregister(dict_id):
     del dic_bottles[dict_id]
     del dic_topics_act[dict_id]
     active_flag[dict_id] = False
+    keep_alive[dict_id] = False
     print("Bottle " + str(dict_id) + " deregistered.")
     return
 

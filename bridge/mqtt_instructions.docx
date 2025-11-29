@@ -71,8 +71,9 @@ the sent JSON-formatted message is:
 -------------------------
 Note:
 -The actuator data is only sent to registered IoT devices.
--The actuator data is only sent when there is a change in threshold or cleaning mode.
--The data can be sent in intervals of a few seconds. Currently, the interval is 10 seconds.
+-The data is sent in intervals of a few seconds. Currently, the interval is 10 seconds.
+-The actuator data is sent when there is a change in threshold or cleaning mode.
+-If the actuator data does not change for two intervals (20 seconds), a keep-alive message with the actuator data is sent to ensure the IoT device knows the edge communication is still active.
 
 ############  Cloud-Edge Communication #############
 

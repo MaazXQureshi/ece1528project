@@ -7,10 +7,17 @@ def publish_actuator_commands():
             resThresh = query(url=url + idx_threshold + "/" + str(i), method="GET")
             resClean = query(url=url + idx_cleaning + "/" + str(i), method="GET")
             if dic_bottles[i]["th"] != resThresh["th"] or dic_bottles[i]["clean"] != resClean["clean"]:
+                keep_alive[i] = False
                 dic_bottles[i]["th"] = resThresh["th"]
                 dic_bottles[i]["clean"] = resClean["clean"]
                 payload = {"th":resThresh["th"],"clean":resClean["clean"]}
                 mqttc.publish(topic=dic_topics_act[i], payload=json.dumps(payload), qos=1)
+            elif keep_alive[i] == True:
+                keep_alive[i] = False
+                payload = {"th":resThresh["th"],"clean":resClean["clean"]}
+                mqttc.publish(topic=dic_topics_act[i], payload=json.dumps(payload), qos=1)
+            else:
+                keep_alive[i] = True
         sleep(interval_Act_Data)
 
 def message_processing():
