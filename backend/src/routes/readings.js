@@ -25,7 +25,7 @@ router.post("/:bottle_id", async (req, res) => {
     });
 
     if (thresholdRecord && vol < thresholdRecord.th) {
-      if (process.env.EMAIL_ON) {
+      if (process.env.EMAIL_ON === "true") {
         await sendAlertEmail({
           bottle_id,
           vol,

@@ -55,7 +55,7 @@ router.put("/:bottle_id", async (req, res) => {
     }
 
     if (flag) {
-      if (process.env.EMAIL_ON) {
+      if (process.env.EMAIL_ON === "true") {
         await sendSpillingEmail(bottle_id);
       }
     }
