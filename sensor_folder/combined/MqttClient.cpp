@@ -3,16 +3,14 @@
 #include <ESP8266WiFi.h>
 
 WiFiClient _wifi_client;
-int _num_subscribe_topics;
 
 MqttClient::MqttClient(const char* mqtt_broker_ip, const int mqtt_broker_port) {
   _mqtt_client.begin(mqtt_broker_ip, _wifi_client);
 }
 
-MqttClient::MqttClient(const char* mqtt_broker_ip, const int mqtt_broker_port, String* subscribe_topics, const int num_subscribe_topics) {
+MqttClient::MqttClient(const char* mqtt_broker_ip, const int mqtt_broker_port, const std::vector<std::pair<String, int>>& subscribe_topics) {
   _mqtt_client.begin(mqtt_broker_ip, _wifi_client);
   _subscribe_topics = subscribe_topics;
-  _num_subscribe_topics = num_subscribe_topics;
 }
 
 void MqttClient::connect(const char* client_id, void (*callback)(String&, String&)) {
@@ -22,10 +20,11 @@ void MqttClient::connect(const char* client_id, void (*callback)(String&, String
     delay(1000);
   }
   Serial.println("done!");
-  for (int i = 0; i < _num_subscribe_topics; i++) {
+  // Specifies the topic name as well as QoS.
+  for (const std::pair<String, int> entry: _subscribe_topics) {
     _mqtt_client.onMessage(callback);
-    _mqtt_client.subscribe(_subscribe_topics[i]);
-    Serial.println("Subscribed to topic: " + _subscribe_topics[i]);
+    _mqtt_client.subscribe(entry.first, entry.second);
+    Serial.println("Subscribed to topic: " + entry.first);
   }
 }
 

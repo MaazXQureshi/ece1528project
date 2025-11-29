@@ -57,9 +57,9 @@ WifiClient wifi_client(ssid_wifi, pass_wifi);
 const char* mqtt_broker_ip = "192.168.2.43";
 const int mqtt_broker_port = 1883;
 const char* client_id = "publisher_sensors";
-const int num_subscribe_topics = 1;
-String subscribe_topics[num_subscribe_topics] = {"Act_Data_" + String(BOTTLE_ID)};
-MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port, subscribe_topics, num_subscribe_topics);
+// Specifies the topic and the QoS.
+std::vector<std::pair<String, int>> subscribe_topics = {std::make_pair("Act_Data_" + String(BOTTLE_ID), 1)};
+MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port, subscribe_topics);
 
 // Helper function to send JSON data to MQTT.
 void sendJSONMessageToMQTT(const DynamicJsonDocument& doc, const char* publish_topic, const int& qos) {
