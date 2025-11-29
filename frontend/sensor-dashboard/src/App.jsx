@@ -11,6 +11,7 @@ function App() {
   const [readings, setReadings] = useState([null, null]);
   const [thresholds, setThresholds] = useState([0, 0]);
   const [cleanings, setCleanings] = useState([false, false]);
+  const [spillings, setSpillings] = useState([false, false]);
   const [newThresholds, setNewThresholds] = useState(["", ""]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState(["", ""]);
@@ -34,7 +35,7 @@ function App() {
       const res = await axios.get(`${API_URL}/threshold/${bottle_id}`);
       setThresholds((prev) => {
         const updated = [...prev];
-        updated[bottle_id - 1] = res.data?.threshold || 0;
+        updated[bottle_id - 1] = res.data?.th || 0;
         return updated;
       });
     } catch (error) {
@@ -47,11 +48,24 @@ function App() {
       const res = await axios.get(`${API_URL}/cleaning/${bottle_id}`);
       setCleanings((prev) => {
         const updated = [...prev];
-        updated[bottle_id - 1] = res.data?.cleaning || false;
+        updated[bottle_id - 1] = res.data?.clean || false;
         return updated;
       });
     } catch (error) {
       console.error("Error fetching cleaning:", error);
+    }
+  };
+
+  const fetchSpilling = async (bottle_id) => {
+    try {
+      const res = await axios.get(`${API_URL}/spilling/${bottle_id}`);
+      setSpillings((prev) => {
+        const updated = [...prev];
+        updated[bottle_id - 1] = res.data?.flag || false;
+        return updated;
+      });
+    } catch (error) {
+      console.error("Error fetching spilling:", error);
     }
   };
 
@@ -73,7 +87,7 @@ function App() {
       });
 
       await axios.put(`${API_URL}/threshold/${bottle_id}`, {
-        threshold: parseFloat(newThresholds[bottle_id - 1]),
+        th: parseFloat(newThresholds[bottle_id - 1]),
       });
       setThresholds((prev) => {
         const updated = [...prev];
@@ -96,7 +110,7 @@ function App() {
     try {
       const newCleaning = !cleanings[bottle_id - 1];
       await axios.put(`${API_URL}/cleaning/${bottle_id}`, {
-        cleaning: newCleaning,
+        clean: newCleaning,
       });
       setCleanings((prev) => {
         const updated = [...prev];
@@ -120,6 +134,7 @@ function App() {
             fetchLatestReading(id),
             fetchThreshold(id),
             fetchCleaning(id),
+            fetchSpilling(id),
           ]);
         })
       );
@@ -163,28 +178,34 @@ function App() {
               </h3>
               {!cleanings[bottle_id - 1] ? (
                 readings[bottle_id - 1] ? (
-                  <div className="grid grid-cols-2 gap-y-2 text-gray-300 text-lg">
-                    <p>
-                      <strong>Volume:</strong> {readings[bottle_id - 1].volume}{" "}
-                      ml
-                    </p>
-                    <p>
-                      <strong>Roll:</strong> {readings[bottle_id - 1].roll}°
-                    </p>
-                    <p>
-                      <strong>Pitch:</strong> {readings[bottle_id - 1].pitch}°
-                    </p>
-                    <p>
-                      <strong>Yaw:</strong> {readings[bottle_id - 1].yaw}°
-                    </p>
-                    <p>
-                      <strong>Temperature:</strong>{" "}
-                      {readings[bottle_id - 1].temperature}° C
-                    </p>
-                    <p>
-                      <strong>Time:</strong>{" "}
-                      {new Date(readings[bottle_id - 1].time).toLocaleString()}
-                    </p>
+                  <div>
+                    <div className="grid grid-cols-2 gap-y-2 text-gray-300 text-lg">
+                      <p>
+                        <strong>Volume:</strong> {readings[bottle_id - 1].vol}{" "}
+                        ml
+                      </p>
+                      <p>
+                        <strong>Temperature:</strong>{" "}
+                        {readings[bottle_id - 1].temp}° C
+                      </p>
+                      <p>
+                        <strong>Time:</strong>{" "}
+                        {new Date(
+                          readings[bottle_id - 1].time
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-gray-300 text-lg">
+                      {spillings[bottle_id - 1] ? (
+                        <div className="text-red-500">
+                          Spilling Hazard Warning
+                        </div>
+                      ) : (
+                        <div className="text-green-600">
+                          Bottle is safe from spilling hazards
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <p>No readings found.</p>

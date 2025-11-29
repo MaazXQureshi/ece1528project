@@ -24,11 +24,11 @@ model Threshold {
 model Cleaning {
   id        Int    @id @default(autoincrement())
   bottle_id Int
-  clean     Bool
+  clean     Boolean
 }
 
 model Spilling {
   id        Int    @id @default(autoincrement())
   bottle_id Int
-  flag      Bool
+  flag      Boolean
 }

@@ -6,6 +6,7 @@ import { MailService } from "@sendgrid/mail";
 import readingsRouter from "./routes/readings.js";
 import thresholdRouter from "./routes/threshold.js";
 import cleaningRouter from "./routes/cleaning.js";
+import spillingRouter from "./routes/spilling.js";
 
 dotenv.config();
 const app = express();
@@ -41,6 +42,7 @@ app.use(express.json());
 app.use("/readings", readingsRouter);
 app.use("/threshold", thresholdRouter);
 app.use("/cleaning", cleaningRouter);
+app.use("/spilling", spillingRouter);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
