@@ -8,10 +8,11 @@
 #include "WifiClient.h"
 #include <ArduinoJson.h>
 #include <Arduino.h>
+#include <algorithm>
 
 // The interval to collect sensor data and send it to Raspberry Pi.
 #define SEND_INTERVAL 500
-#define BOTTLE_ID 1
+#define BOTTLE_ID 2
 #define DENSITY_OF_LIQUID_IN_GRAMS_PER_ML 1.0
 
 // Timer to detect when to collect sensor data.
@@ -31,7 +32,7 @@ unsigned long seq_counter_for_spilling = 0;
 // Initialize the load cell and HX711.
 const int LOADCELL_DOUT_PIN = 12;
 const int LOADCELL_SCK_PIN = 13;
-#define CALIBRATION_FACTOR 432.1866667
+#define CALIBRATION_FACTOR 423.7570621468927
 HX711 scale;
 
 // GPIO where the DS18B20 is connected to
@@ -49,14 +50,14 @@ LiquidCrystal_I2C lcd(0x27, LCD_WIDTH, 2);
 #define LED D13
 
 // Wi-Fi login credientials (should modify according to the your Wi-Fi).
-char ssid_wifi[] = "BELL318";
-char pass_wifi[] = "A2761E9A66C7";
+char ssid_wifi[] = "JP";
+char pass_wifi[] = "batatata";
 WifiClient wifi_client(ssid_wifi, pass_wifi);
 
 // MQTT publisher settings. Be sure to change the IP address!
-const char* mqtt_broker_ip = "192.168.2.43";
+const char* mqtt_broker_ip = "10.108.79.142";
 const int mqtt_broker_port = 1883;
-const char* client_id = "publisher_sensors";
+const char* client_id = "publisher_sensors_2";
 // Specifies the topic and the QoS.
 std::vector<std::pair<String, int>> subscribe_topics = {std::make_pair("Act_Data_" + String(BOTTLE_ID), 1)};
 MqttClient mqtt_client(mqtt_broker_ip, mqtt_broker_port, subscribe_topics);
@@ -151,7 +152,7 @@ void gatherAndSendSensorData() {
   // Load cell and HX711 sensor.
   scale.power_up();
   float weight_in_grams = scale.get_units();
-  float volume_in_milligrams = weight_in_grams / DENSITY_OF_LIQUID_IN_GRAMS_PER_ML;
+  float volume_in_milligrams = std::max(weight_in_grams / DENSITY_OF_LIQUID_IN_GRAMS_PER_ML, 0.0);
   
   // DS18B20 sensor.
   sensors.requestTemperatures();
