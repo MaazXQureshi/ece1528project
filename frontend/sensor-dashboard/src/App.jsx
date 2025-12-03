@@ -71,7 +71,7 @@ function App() {
 
   const updateThreshold = async (bottle_id) => {
     try {
-      if (parseFloat(newThresholds[bottle_id - 1]) <= 0) {
+      if (parseFloat(newThresholds[bottle_id - 1]) < 0) {
         setErrors((prev) => {
           const updated = [...prev];
           updated[bottle_id - 1] = "Only positive thresholds allowed";
@@ -181,12 +181,12 @@ function App() {
                   <div>
                     <div className="grid grid-cols-2 gap-y-2 text-gray-300 text-lg">
                       <p>
-                        <strong>Volume:</strong> {readings[bottle_id - 1].vol}{" "}
+                        <strong>Volume:</strong> {readings[bottle_id - 1].vol.toFixed(2)}{" "}
                         ml
                       </p>
                       <p>
                         <strong>Temperature:</strong>{" "}
-                        {readings[bottle_id - 1].temp}° C
+                        {readings[bottle_id - 1].temp.toFixed(2)}° C
                       </p>
                       <p>
                         <strong>Time:</strong>{" "}
